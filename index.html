@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Object Finder</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/p5.js"></script>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa&display=swap" rel="stylesheet">
+    <style>
+        body{
+            background-color: skyblue;
+            font-family: 'Comfortaa';
+        }
+        .div{
+            background-color: white;
+            color: skyblue;
+            padding: 12px 0px;
+            padding-bottom: 16px;
+        }
+        #input{
+            padding: 3px 5px;
+            border-radius: 3px;
+            font-size: 17px;
+            margin: 15px 0px;
+        }
+        #button{
+            border: none;
+            background: none;
+            margin: 15px 0px;
+            font-size: 20px;
+        }
+        .span{
+            padding: 5px 5px;
+            color: white;
+            font-size: 19px;
+        }
+        canvas{
+            box-shadow: 0px 0px 10px black;
+        }
+    </style>
+</head>
+<body>
+    <center>
+    <div class="div">
+        <h1>AI Object Finder</h1>
+    </div>
+    <input type="text" id="input" placeholder="Type the object here..."><button id="button" onclick="start()">🔍</button>
+    <div id="div">
+        <span class="span" id="status">Status: None</span><br>
+        <span class="span" id="obj">Object Detected: Null</span><br>
+        <span class="span" id="cus">Custom Object: No</span>
+    </div>
+    </center>
+    <script>
+        status = '';
+        texts = '';
+        objects = '';
+        function setup(){
+            canvas = createCanvas(650, 450);
+            canvas.position(395, 280);
+            video = createCapture(VIDEO);
+            video.size(650, 450);
+            video.hide();
+        }
+        function draw(){
+            image(video, 0, 0, 650, 450);
+            if(status != ''){
+                objectDetector.detect(video, gotResult);
+                for(i=0;i<objects.length;i++){
+                    document.getElementById('status').innerHTML = 'Status: Detected';
+                    document.getElementById('obj').innerHTML = 'Object Detected: ' + objects.length;
+                    fill(255, 0, 0);
+                    text(objects[i].label, objects[i].x, objects[i].y);
+                    noFill();
+                    stroke(255, 0, 0);
+                    rect(objects[i].x, objects[i].y, objects[i].width, objects[i].height);
+                    if(objects[i].label == texts){
+                        video.stop();
+                        document.getElementById('cus').innerHTML = 'Custom Object: Yes';
+                    }
+                }
+            }
+        }
+        function gotResult(error, results){
+            if(error){
+                console.log(error);
+            }
+            console.log(results);
+            objects = results;
+        }
+        function start(){
+            objectDetector = ml5.objectDetector('cocossd', modelLoaded);
+            document.getElementById('status').innerHTML = 'Status: Detecting';
+            texts = document.getElementById('input').value;
+            document.getElementById('input').value = '';
+        }
+        function modelLoaded(){
+            status = true;
+            console.log('model loaded.');
+        }
+    </script>
+</body>
+</html>
